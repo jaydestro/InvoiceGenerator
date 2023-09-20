@@ -2,6 +2,38 @@
 
 The Invoice Generator is a console application that allows you to create and manage invoices. It calculates the sales tax based on the state code provided and stores the invoice data in a MongoDB database. The PDF invoices are stored in Azure Blob Storage with anonymous access, and the public URL of each invoice is also stored in the MongoDB database.
 
+## Getting Started
+
+### Prerequisites
+
+Before running the application, make sure you have the following:
+
+- .NET Core SDK installed
+- MongoDB server running on `localhost:27017`
+- Azure Blob Storage account with a container for storing the PDF invoices
+- Update the `appsettings.json` file with the appropriate connection strings for MongoDB and Azure Blob Storage.
+
+Example `appsettings.json` file:
+
+```json
+{
+  "ConnectionStrings": {
+    "MongoDB": "mongodb://localhost:27017",
+    "BlobStorage": "your-blob-storage-connection-string"
+  },
+  "BlobStorageSettings": {
+    "ContainerName": "your-container-name"
+  }
+}
+```
+
+> **Note:** If you have a remote MongoDB server, replace the connection string in the code with the appropriate connection string for your server.
+> 
+### Get Started with Azure Cosmos DB for MongoDB
+
+You can sign up for Azure Cosmos DB for MongoDB for free and start building scalable applications. To get started, visit [https://aka.ms/trycosmosdb](https://aka.ms/trycosmosdb) to create a free account and explore the powerful features of Azure Cosmos DB.
+
+
 ## Features
 
 - Add a new invoice with customer details, items, and shipping costs.
@@ -69,53 +101,16 @@ The code is structured into several files and classes:
 ## stateSalesTaxRates.json
 - JSON file containing sales tax rates for different states and territories.
 
-## Getting Started
-
-### Prerequisites
-
-Before running the application, make sure you have the following:
-
-- .NET Core SDK installed
-- MongoDB server running on `localhost:27017`
-- Azure Blob Storage account with a container for storing the PDF invoices
-- Update the `appsettings.json` file with the appropriate connection strings for MongoDB and Azure Blob Storage.
-
-Example `appsettings.json` file:
-
-```json
-{
-  "ConnectionStrings": {
-    "MongoDB": "mongodb://localhost:27017",
-    "BlobStorage": "your-blob-storage-connection-string"
-  },
-  "BlobStorageSettings": {
-    "ContainerName": "your-container-name"
-  }
-}
-```
-
-> **Note:** If you have a remote MongoDB server, replace the connection string in the code with the appropriate connection string for your server.
-> 
-### Get Started with Azure Cosmos DB for MongoDB
-
-You can sign up for Azure Cosmos DB for MongoDB for free and start building scalable applications. To get started, visit [https://aka.ms/trycosmosdb](https://aka.ms/trycosmosdb) to create a free account and explore the powerful features of Azure Cosmos DB.
-
-
 ## How to Use
 
 1. Clone the repository to your local machine.
 2. Open a command prompt or terminal and navigate to the project directory.
-3. Run the following command to build the application:
-
-   ```shell
-    dotnet build
-   ```
-4. Run the following command to start the application:
+3. Run the following command to start the application:
    ```shell
     dotnet run
    ```
-5. Follow the prompts to interact with the Invoice Generator.
-6. Choose option 1 to add a new invoice or option 2 to list existing invoices.
+4. Follow the prompts to interact with the Invoice Generator.
+5. Choose option 1 to add a new invoice or option 2 to list existing invoices.
 
 ## Technologies Used
 
