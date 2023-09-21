@@ -62,7 +62,7 @@ class InvoiceGenerator
     private static void AddNewInvoice(DBStorage databaseAndStorage)
     {
         // List out current invoices to set the correct receipt number
-        var existingInvoices = databaseAndStorage.ListAll().Count;
+        var existingInvoices = databaseAndStorage.GetInvoiceCount();
 
         Console.WriteLine("What is your first name?");
         string firstName = Console.ReadLine();
@@ -171,7 +171,7 @@ class InvoiceGenerator
 
     private static List<Invoice.Invoice> ListExistingInvoices(DBStorage databaseAndStorage) {
 
-        var invoices = databaseAndStorage.ListAll();
+        var invoices = databaseAndStorage.ListActive();
 
         if (invoices.Count > 0)
         {

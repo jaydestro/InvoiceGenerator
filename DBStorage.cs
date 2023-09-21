@@ -105,5 +105,17 @@ namespace Invoice
             return this.Collection.Find(new BsonDocument()).ToList();
 
         }
+
+        public int GetInvoiceCount() 
+        {
+            return this.ListAll().Count;
+        }
+        
+        public List<Invoice> ListActive()
+        {
+            var filter = Builders<Invoice>.Filter.Eq("IsDeleted", false);
+            return this.Collection.Find(filter).ToList();
+        }
+
     }
 }
