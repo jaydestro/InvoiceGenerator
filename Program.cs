@@ -86,17 +86,52 @@ class InvoiceGenerator
             {
                 var item = new Item(itemName);
                 Console.Write($"Enter the quantity of item #{itemCount}: ");
-                item.Quantity = int.Parse(Console.ReadLine());
+                int quantity = 0;
+                bool success = false;
+                while (!success || quantity == 0) {
+                    success = int.TryParse(Console.ReadLine(), out quantity);
+                    if (success && quantity > 0)
+                    {
+                        item.Quantity = quantity;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Invalid quantity. Please try again.");
+                        Console.WriteLine("Enter the quantity of item #{0}: ", itemCount);
+                    }
+                } 
 
                 Console.Write($"Enter the price of item #{itemCount}: ");
-                item.Price = decimal.Parse(Console.ReadLine());
+                decimal price = 0M;
+                success = false;
+                while (!success || price == 0M) {
+                    success = decimal.TryParse(Console.ReadLine(), out price);
+                    if (success && price > 0M)
+                    {
+                        item.Price = price;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Invalid price. Please try again.");
+                        Console.WriteLine("Enter the price of item #{0}: ", itemCount);
+                    }
+                } 
 
                 Console.Write($"Enter the shipping cost for the entire quantity of item #{itemCount}: ");
-                string shippingCostInput = Console.ReadLine();
-                if (!string.IsNullOrWhiteSpace(shippingCostInput))
-                {
-                    item.ShippingCost = decimal.Parse(shippingCostInput);
-                }
+                decimal shippingCost = 0M;
+                success = false;
+                while (!success || shippingCost == 0M) {
+                    success = decimal.TryParse(Console.ReadLine(), out shippingCost);
+                    if (success && shippingCost > 0M)
+                    {
+                        item.ShippingCost = shippingCost;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Invalid shipping costs. Please try again.");
+                        Console.WriteLine("Enter the shipping costs of item #{0}: ", itemCount);
+                    }
+                } 
 
                 itemList.Add(item);
                 itemCount++;
@@ -125,10 +160,11 @@ class InvoiceGenerator
 
         salesTaxRate = GetSalesTaxRate(stateCode);
 
-        if (salesTaxRate == 0M)
+        while (salesTaxRate == 0M)
         {
             Console.WriteLine("Invalid state code. Unable to calculate sales tax.");
-            return;
+            stateCode = Console.ReadLine().ToUpper();
+            salesTaxRate = GetSalesTaxRate(stateCode);
         }
 
         decimal totalTax = Math.Round((subTotal * salesTaxRate / 100), 2);
