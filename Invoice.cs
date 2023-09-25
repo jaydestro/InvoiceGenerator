@@ -39,6 +39,9 @@ namespace Invoice
         [BsonElement("PdfUrl")]
         public string PdfUrl { get; set; }
 
+        [BsonElement("IsDeleted")]
+        public bool IsDeleted { get; set; }
+
         [BsonIgnore]
         private static int lastUsedInvoiceNumber = 0;
 
@@ -50,15 +53,15 @@ namespace Invoice
             Tax = 0M;
             TotalCost = 0M;
             PdfUrl = string.Empty;
+            IsDeleted = false;
         }
         public string AddInvoice(DBStorage databaseAndStorage)
         {
             // Save the invoice to the MongoDB collection
             databaseAndStorage.Collection.InsertOne(this);
             Console.WriteLine("Invoice saved to the MongoDB database.");
-
             // Generate and store the PDF invoice
-            string pdfFileName = $"{this.InvoiceNumber}_invoice.pdf";
+            string pdfFileName = String.Format("{0:00000}_invoice.pdf", this.InvoiceNumber);
             byte[] pdfBytes = GeneratePdfInvoice();
             databaseAndStorage.UploadPdfToBlobStorage(pdfFileName, pdfBytes);
 
@@ -78,7 +81,8 @@ namespace Invoice
             try {
                 databaseAndStorage.DeletePdfFromBlobStorage(this.PdfUrl.Split('/').Last());
                 var filter = Builders<Invoice>.Filter.Eq("_id", this.Id);
-                databaseAndStorage.Collection.DeleteOne(filter);
+                var update = Builders<Invoice>.Update.Set("IsDeleted", true);
+                databaseAndStorage.Collection.UpdateOne(filter, update);
                 return true;
             }
             catch (Exception e) {
