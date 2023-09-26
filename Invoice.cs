@@ -61,6 +61,12 @@ namespace Invoice
             databaseAndStorage.Collection.InsertOne(this);
             Console.WriteLine("Invoice saved to the MongoDB database.");
             // Generate and store the PDF invoice
+            var pdfUrl = this.GeneratePdfInvoice(databaseAndStorage);
+
+            return pdfUrl;
+        }
+
+        public string GeneratePdfInvoice(DBStorage databaseAndStorage) {
             string pdfFileName = String.Format("{0:00000}_invoice.pdf", this.InvoiceNumber);
             byte[] pdfBytes = GeneratePdfInvoice();
             databaseAndStorage.UploadPdfToBlobStorage(pdfFileName, pdfBytes);
@@ -73,7 +79,7 @@ namespace Invoice
             var filter = Builders<Invoice>.Filter.Eq("_id", this.Id);
             var update = Builders<Invoice>.Update.Set("PdfUrl", pdfUrl);
             databaseAndStorage.Collection.UpdateOne(filter, update);
-
+            
             return pdfUrl;
         }
 
@@ -89,6 +95,16 @@ namespace Invoice
                 Console.WriteLine("Error: {0}", e.Message);
                 return false;
             }
+        }
+
+        public string UndeleteInvoice(DBStorage databaseAndStorage) 
+        {
+            var filter = Builders<Invoice>.Filter.Eq("_id", this.Id);
+            var update = Builders<Invoice>.Update.Set("IsDeleted", false);
+            databaseAndStorage.Collection.UpdateOne(filter, update);
+
+            var pdfUrl = this.GeneratePdfInvoice(databaseAndStorage);
+            return pdfUrl;
         }
 
         public byte[] GeneratePdfInvoice()

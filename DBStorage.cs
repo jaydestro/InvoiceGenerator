@@ -117,5 +117,11 @@ namespace Invoice
             return this.Collection.Find(filter).ToList();
         }
 
+        public List<Invoice> ListDeleted()
+        {
+            var filter = Builders<Invoice>.Filter.Eq("IsDeleted", true);
+            return this.Collection.Find(filter).ToList();
+        }
+        
     }
 }

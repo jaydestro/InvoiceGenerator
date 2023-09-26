@@ -33,8 +33,9 @@ class InvoiceGenerator
             Console.WriteLine("1. Add a new invoice");
             Console.WriteLine("2. List existing invoices");
             Console.WriteLine("3. Delete an invoice");
-            Console.WriteLine("4. Exit");
-            Console.Write("Enter your choice (1, 2, 3, or 4): ");
+            Console.WriteLine("4. Undelete an invoice");
+            Console.WriteLine("5. Exit");
+            Console.Write("Enter your choice (1, 2, 3, 4, 5): ");
             string choice = Console.ReadLine();
 
             switch (choice)
@@ -49,6 +50,9 @@ class InvoiceGenerator
                     DeleteInvoice(databaseAndStorage);
                     break;
                 case "4":
+                    UnDeleteInvoice(databaseAndStorage);
+                    break;
+                case "5":
                     Console.WriteLine("Exiting...");
                     return;
                 default:
@@ -88,7 +92,8 @@ class InvoiceGenerator
                 Console.Write($"Enter the quantity of item #{itemCount}: ");
                 int quantity = 0;
                 bool success = false;
-                while (!success || quantity == 0) {
+                while (!success || quantity == 0)
+                {
                     success = int.TryParse(Console.ReadLine(), out quantity);
                     if (success && quantity > 0)
                     {
@@ -99,12 +104,13 @@ class InvoiceGenerator
                         Console.WriteLine("Invalid quantity. Please try again.");
                         Console.WriteLine("Enter the quantity of item #{0}: ", itemCount);
                     }
-                } 
+                }
 
                 Console.Write($"Enter the price of item #{itemCount}: ");
                 decimal price = 0M;
                 success = false;
-                while (!success || price == 0M) {
+                while (!success || price == 0M)
+                {
                     success = decimal.TryParse(Console.ReadLine(), out price);
                     if (success && price > 0M)
                     {
@@ -115,12 +121,13 @@ class InvoiceGenerator
                         Console.WriteLine("Invalid price. Please try again.");
                         Console.WriteLine("Enter the price of item #{0}: ", itemCount);
                     }
-                } 
+                }
 
                 Console.Write($"Enter the shipping cost for the entire quantity of item #{itemCount}: ");
                 decimal shippingCost = 0M;
                 success = false;
-                while (!success || shippingCost == 0M) {
+                while (!success || shippingCost == 0M)
+                {
                     success = decimal.TryParse(Console.ReadLine(), out shippingCost);
                     if (success && shippingCost > 0M)
                     {
@@ -131,7 +138,7 @@ class InvoiceGenerator
                         Console.WriteLine("Invalid shipping costs. Please try again.");
                         Console.WriteLine("Enter the shipping costs of item #{0}: ", itemCount);
                     }
-                } 
+                }
 
                 itemList.Add(item);
                 itemCount++;
@@ -205,7 +212,8 @@ class InvoiceGenerator
         }
     }
 
-    private static List<Invoice.Invoice> ListExistingInvoices(DBStorage databaseAndStorage) {
+    private static List<Invoice.Invoice> ListExistingInvoices(DBStorage databaseAndStorage)
+    {
 
         var invoices = databaseAndStorage.ListActive();
 
@@ -230,7 +238,7 @@ class InvoiceGenerator
 
         if (invoices.Count > 0)
         {
-            
+
             Console.Write("Select an invoice by number (1-{0}) or enter 0 to cancel: ", invoices.Count);
             int invoiceIndex;
             if (int.TryParse(Console.ReadLine(), out invoiceIndex))
@@ -282,40 +290,90 @@ class InvoiceGenerator
         }
     }
 
-  private static void DeleteInvoice(DBStorage databaseAndStorage)
-{
-    var invoices = ListExistingInvoices(databaseAndStorage); // Display the existing invoices to choose from
-
-    Console.Write("Select an invoice by number to delete (1-{0}) or enter 0 to cancel: ", invoices.Count);
-    if (int.TryParse(Console.ReadLine(), out int invoiceIndex))
+    private static void DeleteInvoice(DBStorage databaseAndStorage)
     {
-        if (invoiceIndex >= 1 && invoiceIndex <= invoices.Count)
+        var invoices = ListExistingInvoices(databaseAndStorage); // Display the existing invoices to choose from
+
+        Console.Write("Select an invoice by number to delete (1-{0}) or enter 0 to cancel: ", invoices.Count);
+        if (int.TryParse(Console.ReadLine(), out int invoiceIndex))
         {
-            var invoiceToDelete = invoices[invoiceIndex - 1];
-            if (invoiceToDelete.DeleteInvoice(databaseAndStorage))
+            if (invoiceIndex >= 1 && invoiceIndex <= invoices.Count)
             {
-                Console.WriteLine("Invoice deleted successfully.");
+                var invoiceToDelete = invoices[invoiceIndex - 1];
+                if (invoiceToDelete.DeleteInvoice(databaseAndStorage))
+                {
+                    Console.WriteLine("Invoice deleted successfully.");
+                }
+                else
+                {
+                    Console.WriteLine("Failed to delete the invoice.");
+                }
+            }
+            else if (invoiceIndex == 0)
+            {
+                Console.WriteLine("Invoice deletion canceled.");
             }
             else
             {
-                Console.WriteLine("Failed to delete the invoice.");
+                Console.WriteLine("Invalid invoice number. Please try again.");
             }
-        }
-        else if (invoiceIndex == 0)
-        {
-            Console.WriteLine("Invoice deletion canceled.");
         }
         else
         {
-            Console.WriteLine("Invalid invoice number. Please try again.");
+            Console.WriteLine("Invalid input. Please try again.");
         }
     }
-    else
+
+    private static void UnDeleteInvoice(DBStorage databaseAndStorage)
     {
-        Console.WriteLine("Invalid input. Please try again.");
+        var invoices = ListDeletedInvoices(databaseAndStorage); // Display the existing invoices to choose from
+
+        Console.Write("Select an invoice by number to undelete (1-{0}) or enter 0 to cancel: ", invoices.Count);
+        if (int.TryParse(Console.ReadLine(), out int invoiceIndex))
+        {
+            if (invoiceIndex >= 1 && invoiceIndex <= invoices.Count)
+            {
+                var invoiceToUndelete = invoices[invoiceIndex - 1];
+                if (!string.IsNullOrWhiteSpace(invoiceToUndelete.UndeleteInvoice(databaseAndStorage)))
+                {
+                    Console.WriteLine("Invoice undeleted successfully.");
+                }
+                else
+                {
+                    Console.WriteLine("Failed to undelete the invoice.");
+                }
+            }
+            else if (invoiceIndex == 0)
+            {
+                Console.WriteLine("Invoice undeletion canceled.");
+            }
+            else
+            {
+                Console.WriteLine("Invalid invoice number. Please try again.");
+            }
+        }
+        else
+        {
+            Console.WriteLine("Invalid input. Please try again.");
+        }
     }
+
+    private static List<Invoice.Invoice> ListDeletedInvoices(DBStorage databaseAndStorage)
+{
+    var invoices = databaseAndStorage.ListDeleted();
+
+    if (invoices.Count > 0)
+    {
+        Console.WriteLine("Deleted Invoices:");
+
+        for (int i = 0; i < invoices.Count; i++)
+        {
+            var invoice = invoices[i];
+            Console.WriteLine("{0}. {1:00000} - {2} - {3:yyyy-MM-dd} - Total: {4:C}", i + 1, invoice.InvoiceNumber, invoice.FullName, invoice.Date, invoice.TotalCost);
+        }
+    }
+    return invoices;
 }
-  
 
     private static decimal GetSalesTaxRate(string stateCode)
     {
