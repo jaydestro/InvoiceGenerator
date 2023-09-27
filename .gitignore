@@ -12,7 +12,6 @@ obj/*
 *.exe 
 appsettings.json
 ./appsettings.json
-InvoiceGenerator.sln
 
 /bin
 /obj
