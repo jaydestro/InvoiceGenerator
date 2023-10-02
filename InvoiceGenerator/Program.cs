@@ -349,21 +349,21 @@ class InvoiceGenerator
     }
 
     private static List<Invoice.Invoice> ListDeletedInvoices(DBStorage databaseAndStorage)
-{
-    var invoices = databaseAndStorage.ListDeleted();
-
-    if (invoices.Count > 0)
     {
-        Console.WriteLine("Deleted Invoices:");
+        var invoices = databaseAndStorage.ListDeleted();
 
-        for (int i = 0; i < invoices.Count; i++)
+        if (invoices.Count > 0)
         {
-            var invoice = invoices[i];
-            Console.WriteLine("{0}. {1:00000} - {2} - {3:yyyy-MM-dd} - Total: {4:C}", i + 1, invoice.InvoiceNumber, invoice.FullName, invoice.Date, invoice.TotalCost);
+            Console.WriteLine("Deleted Invoices:");
+
+            for (int i = 0; i < invoices.Count; i++)
+            {
+                var invoice = invoices[i];
+                Console.WriteLine("{0}. {1:00000} - {2} - {3:yyyy-MM-dd} - Total: {4:C}", i + 1, invoice.InvoiceNumber, invoice.FullName, invoice.Date, invoice.TotalCost);
+            }
         }
+        return invoices;
     }
-    return invoices;
-}
 
     private static decimal GetSalesTaxRate(string stateCode)
     {

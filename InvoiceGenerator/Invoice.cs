@@ -46,10 +46,8 @@ namespace Invoice
         [BsonElement("IsDeleted")]
         public bool IsDeleted { get; set; }
 
-        [BsonIgnore]
-        private static object invoiceNumberLock = new object();
-
-        public Invoice() {
+        public Invoice()
+        {
             Items = new List<Item>();
             Tax = 0M;
             TotalCost = 0M;
@@ -60,7 +58,7 @@ namespace Invoice
         public string AddInvoice(DBStorage databaseAndStorage)
         {
             // Save the invoice to the MongoDB collection
-            
+
             var collection = databaseAndStorage.GetDatabaseCollection();
             collection.InsertOne(this);
             Console.WriteLine("Invoice saved to the MongoDB database.");
@@ -71,7 +69,8 @@ namespace Invoice
 
         }
 
-        public string GeneratePdfInvoice(DBStorage databaseAndStorage) {
+        public string GeneratePdfInvoice(DBStorage databaseAndStorage)
+        {
             string pdfFileName = String.Format("{0:00000}_invoice.pdf", this.InvoiceNumber);
             byte[] pdfBytes = GeneratePdfInvoice();
             databaseAndStorage.UploadPdfToBlobStorage(pdfFileName, pdfBytes);
@@ -85,12 +84,14 @@ namespace Invoice
             var update = Builders<Invoice>.Update.Set("PdfUrl", pdfUrl);
             var collection = databaseAndStorage.GetDatabaseCollection();
             collection.UpdateOne(filter, update);
-            
+
             return pdfUrl;
         }
 
-        public bool DeleteInvoice(DBStorage databaseAndStorage) {
-            try {
+        public bool DeleteInvoice(DBStorage databaseAndStorage)
+        {
+            try
+            {
                 databaseAndStorage.DeletePdfFromBlobStorage(this.PdfUrl.Split('/').Last());
                 var filter = Builders<Invoice>.Filter.Eq("_id", this.Id);
                 var update = Builders<Invoice>.Update.Set("IsDeleted", true);
@@ -98,13 +99,14 @@ namespace Invoice
                 collection.UpdateOne(filter, update);
                 return true;
             }
-            catch (Exception e) {
+            catch (Exception e)
+            {
                 Console.WriteLine("Error: {0}", e.Message);
                 return false;
             }
         }
 
-        public string UndeleteInvoice(DBStorage databaseAndStorage) 
+        public string UndeleteInvoice(DBStorage databaseAndStorage)
         {
             var filter = Builders<Invoice>.Filter.Eq("_id", this.Id);
             var update = Builders<Invoice>.Update.Set("IsDeleted", false);
@@ -115,13 +117,13 @@ namespace Invoice
             return pdfUrl;
         }
 
-public byte[] GeneratePdfInvoice()
+        public byte[] GeneratePdfInvoice()
         {
-            using (MemoryStream memoryStream = new MemoryStream())
+            using (MemoryStream memoryStream = new())
             {
-                PdfWriter writer = new PdfWriter(memoryStream);
-                PdfDocument pdfDoc = new PdfDocument(writer);
-                Document document = new Document(pdfDoc);
+                PdfWriter writer = new(memoryStream);
+                PdfDocument pdfDoc = new(writer);
+                Document document = new(pdfDoc);
 
                 document.Add(new Paragraph("INVOICE DETAILS"));
                 document.Add(new Paragraph("\n"));

@@ -17,20 +17,20 @@ namespace Invoice
         public string BlobConnectionString { get; set; }
         public string BlobContainerName { get; set; }
 
-private IMongoCollection<Invoice>? _collection;
- public IMongoCollection<Invoice>? Collection 
-{
-    get 
-    {
-        return _collection;
-    }
-    set 
-    {
-        _collection = value;
-    }
-}
+        private IMongoCollection<Invoice>? _collection;
+        public IMongoCollection<Invoice>? Collection
+        {
+            get
+            {
+                return _collection;
+            }
+            set
+            {
+                _collection = value;
+            }
+        }
 
-private IMongoDatabase? database;
+        private IMongoDatabase? database;
 
         private Lazy<BlobContainerClient> lazyBlobContainer;
 
@@ -47,15 +47,18 @@ private IMongoDatabase? database;
 
         private BlobContainerClient BlobContainer => lazyBlobContainer.Value;
 
-        public IMongoCollection<Invoice> GetDatabaseCollection() {
-            if (this.Collection != null) {
+        public IMongoCollection<Invoice> GetDatabaseCollection()
+        {
+            if (this.Collection != null)
+            {
                 return this.Collection;
             }
-            else {
+            else
+            {
                 throw new Exception("Failed to return the Mongo Collection.");
             }
         }
-        
+
         public void CreateDatabaseAndStorage()
         {
             MongoClient client = new MongoClient(this.ConnectionString);
@@ -128,7 +131,7 @@ private IMongoDatabase? database;
             }
         }
 
-        public void DeletePdfFromBlobStorage(string fileName) 
+        public void DeletePdfFromBlobStorage(string fileName)
         {
             this.BlobContainer.DeleteBlob(fileName);
         }
@@ -144,11 +147,11 @@ private IMongoDatabase? database;
             return this.Collection.Find(new BsonDocument()).ToList();
         }
 
-        public int GetInvoiceCount() 
+        public int GetInvoiceCount()
         {
             return this.ListAll().Count;
         }
-        
+
         public List<Invoice> ListActive()
         {
             var filter = Builders<Invoice>.Filter.Eq("IsDeleted", false);
