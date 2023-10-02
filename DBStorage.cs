@@ -17,7 +17,19 @@ namespace Invoice
         public string BlobConnectionString { get; set; }
         public string BlobContainerName { get; set; }
 
-public IMongoCollection<Invoice>? Collection { get; set; }
+private IMongoCollection<Invoice>? _collection;
+ public IMongoCollection<Invoice>? Collection 
+{
+    get 
+    {
+        return _collection;
+    }
+    set 
+    {
+        _collection = value;
+    }
+}
+
 private IMongoDatabase? database;
 
         private Lazy<BlobContainerClient> lazyBlobContainer;
@@ -35,6 +47,15 @@ private IMongoDatabase? database;
 
         private BlobContainerClient BlobContainer => lazyBlobContainer.Value;
 
+        public IMongoCollection<Invoice> GetDatabaseCollection() {
+            if (this.Collection != null) {
+                return this.Collection;
+            }
+            else {
+                throw new Exception("Failed to return the Mongo Collection.");
+            }
+        }
+        
         public void CreateDatabaseAndStorage()
         {
             MongoClient client = new MongoClient(this.ConnectionString);

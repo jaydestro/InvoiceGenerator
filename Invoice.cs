@@ -47,9 +47,6 @@ namespace Invoice
         public bool IsDeleted { get; set; }
 
         [BsonIgnore]
-        private static int lastUsedInvoiceNumber = 0;
-
-        [BsonIgnore]
         private static object invoiceNumberLock = new object();
 
         public Invoice() {
@@ -63,12 +60,15 @@ namespace Invoice
         public string AddInvoice(DBStorage databaseAndStorage)
         {
             // Save the invoice to the MongoDB collection
-            databaseAndStorage.Collection.InsertOne(this);
+            
+            var collection = databaseAndStorage.GetDatabaseCollection();
+            collection.InsertOne(this);
             Console.WriteLine("Invoice saved to the MongoDB database.");
             // Generate and store the PDF invoice
             var pdfUrl = this.GeneratePdfInvoice(databaseAndStorage);
 
             return pdfUrl;
+
         }
 
         public string GeneratePdfInvoice(DBStorage databaseAndStorage) {
@@ -83,7 +83,8 @@ namespace Invoice
             // Store the PDF URL in the MongoDB invoice document
             var filter = Builders<Invoice>.Filter.Eq("_id", this.Id);
             var update = Builders<Invoice>.Update.Set("PdfUrl", pdfUrl);
-            databaseAndStorage.Collection.UpdateOne(filter, update);
+            var collection = databaseAndStorage.GetDatabaseCollection();
+            collection.UpdateOne(filter, update);
             
             return pdfUrl;
         }
@@ -93,7 +94,8 @@ namespace Invoice
                 databaseAndStorage.DeletePdfFromBlobStorage(this.PdfUrl.Split('/').Last());
                 var filter = Builders<Invoice>.Filter.Eq("_id", this.Id);
                 var update = Builders<Invoice>.Update.Set("IsDeleted", true);
-                databaseAndStorage.Collection.UpdateOne(filter, update);
+                var collection = databaseAndStorage.GetDatabaseCollection();
+                collection.UpdateOne(filter, update);
                 return true;
             }
             catch (Exception e) {
@@ -106,7 +108,8 @@ namespace Invoice
         {
             var filter = Builders<Invoice>.Filter.Eq("_id", this.Id);
             var update = Builders<Invoice>.Update.Set("IsDeleted", false);
-            databaseAndStorage.Collection.UpdateOne(filter, update);
+            var collection = databaseAndStorage.GetDatabaseCollection();
+            collection.UpdateOne(filter, update);
 
             var pdfUrl = this.GeneratePdfInvoice(databaseAndStorage);
             return pdfUrl;
