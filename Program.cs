@@ -8,7 +8,7 @@ using Invoice;
 
 class InvoiceGenerator
 {
-    static IConfiguration configuration;
+    static IConfiguration? configuration;
 
     public static void Main()
     {
@@ -17,11 +17,11 @@ class InvoiceGenerator
             .AddJsonFile("appsettings.json")
             .Build();
 
-        string connectionString = configuration.GetConnectionString("MongoDB");
+        string connectionString = configuration.GetConnectionString("MongoDB") ?? throw new ArgumentNullException(nameof(connectionString));
         string databaseName = "invoices";
         string collectionName = "invoices";
-        string blobStorageConnectionString = configuration.GetConnectionString("BlobStorage");
-        string containerName = configuration["BlobStorageSettings:ContainerName"];
+        string blobStorageConnectionString = configuration.GetConnectionString("BlobStorage") ?? throw new ArgumentNullException(nameof(blobStorageConnectionString));
+        string containerName = configuration["BlobStorageSettings:ContainerName"] ?? throw new ArgumentNullException(nameof(containerName));
 
         var databaseAndStorage = new DBStorage(connectionString, databaseName, collectionName, blobStorageConnectionString, containerName);
         databaseAndStorage.CreateDatabaseAndStorage();
@@ -36,7 +36,7 @@ class InvoiceGenerator
             Console.WriteLine("4. Undelete an invoice");
             Console.WriteLine("5. Exit");
             Console.Write("Enter your choice (1, 2, 3, 4, 5): ");
-            string choice = Console.ReadLine();
+            string choice = Console.ReadLine()!;
 
             switch (choice)
             {
@@ -69,10 +69,10 @@ class InvoiceGenerator
         var existingInvoices = databaseAndStorage.GetInvoiceCount();
 
         Console.WriteLine("What is your first name?");
-        string firstName = Console.ReadLine();
+        string firstName = Console.ReadLine()!;
 
         Console.WriteLine("What is your last name?");
-        string lastName = Console.ReadLine();
+        string lastName = Console.ReadLine()!;
 
         var itemList = new List<Item>();
 
@@ -81,7 +81,7 @@ class InvoiceGenerator
         while (keepGoing)
         {
             Console.Write($"Enter the name of item #{itemCount} (or leave it empty to finish): ");
-            string itemName = Console.ReadLine();
+            string itemName = Console.ReadLine()!;
             if (string.IsNullOrWhiteSpace(itemName))
             {
                 keepGoing = false;
@@ -94,7 +94,7 @@ class InvoiceGenerator
                 bool success = false;
                 while (!success || quantity == 0)
                 {
-                    success = int.TryParse(Console.ReadLine(), out quantity);
+                    success = int.TryParse(Console.ReadLine()!, out quantity);
                     if (success && quantity > 0)
                     {
                         item.Quantity = quantity;
@@ -111,7 +111,7 @@ class InvoiceGenerator
                 success = false;
                 while (!success || price == 0M)
                 {
-                    success = decimal.TryParse(Console.ReadLine(), out price);
+                    success = decimal.TryParse(Console.ReadLine()!, out price);
                     if (success && price > 0M)
                     {
                         item.Price = price;
@@ -124,7 +124,7 @@ class InvoiceGenerator
                 }
 
                 Console.Write($"Enter the shipping cost for the entire quantity of item #{itemCount}: ");
-                string shippingCostInput = Console.ReadLine();
+                string shippingCostInput = Console.ReadLine()!;
                 if (!string.IsNullOrWhiteSpace(shippingCostInput))
                 {
                     item.ShippingCost = decimal.Parse(shippingCostInput);
@@ -147,7 +147,7 @@ class InvoiceGenerator
         do
         {
             Console.Write("Enter the two-letter US state code (e.g., NY) or type 'list' to see the sales tax rates: ");
-            stateCode = Console.ReadLine().ToUpper();
+            stateCode = Console.ReadLine()!.ToUpper();
 
             if (stateCode == "LIST")
             {
@@ -160,7 +160,7 @@ class InvoiceGenerator
         while (salesTaxRate == 0M)
         {
             Console.WriteLine("Invalid state code. Unable to calculate sales tax.");
-            stateCode = Console.ReadLine().ToUpper();
+            stateCode = Console.ReadLine()!.ToUpper();
             salesTaxRate = GetSalesTaxRate(stateCode);
         }
 
@@ -231,7 +231,7 @@ class InvoiceGenerator
 
             Console.Write("Select an invoice by number (1-{0}) or enter 0 to cancel: ", invoices.Count);
             int invoiceIndex;
-            if (int.TryParse(Console.ReadLine(), out invoiceIndex))
+            if (int.TryParse(Console.ReadLine()!, out invoiceIndex))
             {
                 if (invoiceIndex >= 1 && invoiceIndex <= invoices.Count)
                 {
@@ -285,7 +285,7 @@ class InvoiceGenerator
         var invoices = ListExistingInvoices(databaseAndStorage); // Display the existing invoices to choose from
 
         Console.Write("Select an invoice by number to delete (1-{0}) or enter 0 to cancel: ", invoices.Count);
-        if (int.TryParse(Console.ReadLine(), out int invoiceIndex))
+        if (int.TryParse(Console.ReadLine()!, out int invoiceIndex))
         {
             if (invoiceIndex >= 1 && invoiceIndex <= invoices.Count)
             {
@@ -319,7 +319,7 @@ class InvoiceGenerator
         var invoices = ListDeletedInvoices(databaseAndStorage); // Display the existing invoices to choose from
 
         Console.Write("Select an invoice by number to undelete (1-{0}) or enter 0 to cancel: ", invoices.Count);
-        if (int.TryParse(Console.ReadLine(), out int invoiceIndex))
+        if (int.TryParse(Console.ReadLine()!, out int invoiceIndex))
         {
             if (invoiceIndex >= 1 && invoiceIndex <= invoices.Count)
             {
@@ -377,9 +377,16 @@ class InvoiceGenerator
 
     private static Dictionary<string, decimal> LoadStateSalesTaxRates()
     {
-        var json = File.ReadAllText("stateSalesTaxRates.json");
+        var filePath = "stateSalesTaxRates.json";
+        if (!File.Exists(filePath))
+        {
+            Console.WriteLine($"Error: File {filePath} not found.");
+            return new Dictionary<string, decimal>();
+        }
+
+        var json = File.ReadAllText(filePath);
         var stateSalesTaxRates = JsonSerializer.Deserialize<Dictionary<string, decimal>>(json);
-        return stateSalesTaxRates;
+        return stateSalesTaxRates ?? new Dictionary<string, decimal>();
     }
 
 }

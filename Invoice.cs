@@ -4,8 +4,12 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
-using iTextSharp.text;
-using iTextSharp.text.pdf;
+using iText.Kernel.Pdf;
+using iText.Layout;
+using iText.Layout.Element;
+using System;
+using System.IO;
+using System.Linq;
 
 namespace Invoice
 {
@@ -25,7 +29,7 @@ namespace Invoice
         public DateTime Date { get; set; }
 
         [BsonElement("FullName")]
-        public string FullName { get; set; }
+        public string? FullName { get; set; }
 
         [BsonElement("Items")]
         public List<Item> Items { get; set; }
@@ -54,6 +58,7 @@ namespace Invoice
             TotalCost = 0M;
             PdfUrl = string.Empty;
             IsDeleted = false;
+            FullName = null;
         }
         public string AddInvoice(DBStorage databaseAndStorage)
         {
@@ -107,37 +112,33 @@ namespace Invoice
             return pdfUrl;
         }
 
-        public byte[] GeneratePdfInvoice()
+public byte[] GeneratePdfInvoice()
         {
-            // Create a new PDF document
-            Document document = new Document();
             using (MemoryStream memoryStream = new MemoryStream())
             {
-                // Create a writer to write the PDF contents to the memory stream
-                PdfWriter writer = PdfWriter.GetInstance(document, memoryStream);
-                document.Open();
+                PdfWriter writer = new PdfWriter(memoryStream);
+                PdfDocument pdfDoc = new PdfDocument(writer);
+                Document document = new Document(pdfDoc);
 
-                // Add the invoice details to the PDF document
                 document.Add(new Paragraph("INVOICE DETAILS"));
-                document.Add(Chunk.NEWLINE);
-                document.Add(new Paragraph($"Invoice Number: {this.InvoiceNumber :00000}"));
+                document.Add(new Paragraph("\n"));
+                document.Add(new Paragraph($"Invoice Number: {this.InvoiceNumber:00000}"));
                 document.Add(new Paragraph($"Date of Invoice: {this.Date:yyyy-MM-dd}"));
                 document.Add(new Paragraph($"Customer Name: {this.FullName}"));
-                document.Add(Chunk.NEWLINE);
+                document.Add(new Paragraph("\n"));
 
                 document.Add(new Paragraph("Items:"));
                 foreach (Item item in this.Items)
                 {
                     document.Add(new Paragraph($"Item: {item.Name}, Price: {item.Price:C}, Quantity: {item.Quantity}, Shipping Cost: {item.ShippingCost:C}"));
                 }
-                document.Add(Chunk.NEWLINE);
+                document.Add(new Paragraph("\n"));
 
                 document.Add(new Paragraph($"Sales Tax: {this.Tax:C}"));
                 document.Add(new Paragraph($"Total Cost: {this.TotalCost:C}"));
 
                 document.Close();
 
-                // Return the PDF contents as a byte array
                 return memoryStream.ToArray();
             }
         }

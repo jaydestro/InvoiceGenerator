@@ -3,9 +3,11 @@ using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using System;
+using System.Collections.Generic;
+using System.IO;
 
 namespace Invoice
-
 {
     public class DBStorage
     {
@@ -15,9 +17,10 @@ namespace Invoice
         public string BlobConnectionString { get; set; }
         public string BlobContainerName { get; set; }
 
-        IMongoDatabase database;
-        public IMongoCollection<Invoice> Collection { get; set; }
-        BlobContainerClient blobContainer;
+public IMongoCollection<Invoice>? Collection { get; set; }
+private IMongoDatabase? database;
+
+        private Lazy<BlobContainerClient> lazyBlobContainer;
 
         public DBStorage(string connectionString, string databaseName, string collectionName, string blobConnectionString, string blobContainerName)
         {
@@ -26,7 +29,11 @@ namespace Invoice
             this.CollectionName = collectionName;
             this.BlobConnectionString = blobConnectionString;
             this.BlobContainerName = blobContainerName;
+
+            this.lazyBlobContainer = new Lazy<BlobContainerClient>(() => new BlobContainerClient(BlobConnectionString, BlobContainerName));
         }
+
+        private BlobContainerClient BlobContainer => lazyBlobContainer.Value;
 
         public void CreateDatabaseAndStorage()
         {
@@ -37,18 +44,24 @@ namespace Invoice
             // Create the database and container if they don't exist
             CreateDatabase();
 
-            blobContainer = new BlobContainerClient(this.BlobConnectionString, this.BlobContainerName);
             CreateBlobContainer(this.BlobContainerName);
         }
+
         private void CreateDatabase()
         {
-            var databaseList = this.database.Client.ListDatabaseNames().ToList();
-
-            if (!databaseList.Contains(this.DatabaseName))
+            if (database is null)
             {
-                this.database.Client.GetDatabase(this.DatabaseName);
+                throw new InvalidOperationException("Database is null");
+            }
+
+            var databaseList = database.Client.ListDatabaseNames().ToList();
+
+            if (!databaseList.Contains(DatabaseName))
+            {
+                database.Client.GetDatabase(DatabaseName);
             }
         }
+
         private void CreateBlobContainer(string containerName)
         {
             BlobServiceClient blobServiceClient = new BlobServiceClient(this.BlobConnectionString);
@@ -67,11 +80,17 @@ namespace Invoice
                 Console.WriteLine("Blob storage container already exists.");
             }
         }
+
         public bool IsDatabaseAvailable()
         {
             try
             {
-                this.database.RunCommand((Command<BsonDocument>)"{ping:1}");
+                if (database is null)
+                {
+                    throw new InvalidOperationException("Database is null");
+                }
+
+                database.RunCommand((Command<BsonDocument>)"{ping:1}");
                 return true;
             }
             catch
@@ -79,31 +98,29 @@ namespace Invoice
                 return false;
             }
         }
+
         public void UploadPdfToBlobStorage(string fileName, byte[] fileBytes)
         {
-            // Upload the PDF file to Azure Blob Storage
             using (MemoryStream stream = new MemoryStream(fileBytes))
             {
-                this.blobContainer.UploadBlob(fileName, stream);
+                this.BlobContainer.UploadBlob(fileName, stream);
             }
         }
 
         public void DeletePdfFromBlobStorage(string fileName) 
         {
-            this.blobContainer.DeleteBlob(fileName);
+            this.BlobContainer.DeleteBlob(fileName);
         }
 
         public string GetBlobStorageUrl(string fileName)
         {
-            // Get the public URL of the uploaded PDF file
-            BlobClient blobClient = this.blobContainer.GetBlobClient(fileName);
+            BlobClient blobClient = this.BlobContainer.GetBlobClient(fileName);
             return blobClient.Uri.AbsoluteUri;
         }
 
         public List<Invoice> ListAll()
         {
             return this.Collection.Find(new BsonDocument()).ToList();
-
         }
 
         public int GetInvoiceCount() 
@@ -122,6 +139,5 @@ namespace Invoice
             var filter = Builders<Invoice>.Filter.Eq("IsDeleted", true);
             return this.Collection.Find(filter).ToList();
         }
-        
     }
 }
