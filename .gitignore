@@ -12,7 +12,8 @@ obj/*
 *.exe 
 appsettings.json
 ./appsettings.json
-
+*/bin
+*/obj
 /bin
 /obj
 

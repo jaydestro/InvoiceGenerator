@@ -1,6 +1,3 @@
-// TBD: make sure invoices numbers arent replicated in the database, and the invoice pdfs arent replicated in the blob storage
-// deserialize the invoice pdfs from the blob storage and store them in the database
-
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
@@ -10,10 +7,10 @@ using iText.Layout.Element;
 using System;
 using System.IO;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace Invoice
 {
-
     public class Invoice
     {
         [BsonId]
@@ -55,24 +52,30 @@ namespace Invoice
             IsDeleted = false;
             FullName = null;
         }
+
         public string AddInvoice(DBStorage databaseAndStorage)
         {
-            // Save the invoice to the MongoDB collection
+            // Generate a unique invoice number
+            this.InvoiceNumber = databaseAndStorage.IncrementalInvoiceNumber + 1;
+            
+            // Update the IncrementalInvoiceNumber in databaseAndStorage
+            databaseAndStorage.IncrementalInvoiceNumber = this.InvoiceNumber;
 
+            // Save the invoice to the MongoDB collection
             var collection = databaseAndStorage.GetDatabaseCollection();
             collection.InsertOne(this);
             Console.WriteLine("Invoice saved to the MongoDB database.");
+            
             // Generate and store the PDF invoice
             var pdfUrl = this.GeneratePdfInvoice(databaseAndStorage);
 
             return pdfUrl;
-
         }
 
         public string GeneratePdfInvoice(DBStorage databaseAndStorage)
         {
             string pdfFileName = String.Format("{0:00000}_invoice.pdf", this.InvoiceNumber);
-            byte[] pdfBytes = GeneratePdfInvoice();
+            byte[] pdfBytes = GeneratePdf();
             databaseAndStorage.UploadPdfToBlobStorage(pdfFileName, pdfBytes);
 
             // Get the public URL of the PDF invoice
@@ -117,7 +120,7 @@ namespace Invoice
             return pdfUrl;
         }
 
-        public byte[] GeneratePdfInvoice()
+        private byte[] GeneratePdf()
         {
             using (MemoryStream memoryStream = new())
             {
@@ -147,6 +150,5 @@ namespace Invoice
                 return memoryStream.ToArray();
             }
         }
-
     }
 }
