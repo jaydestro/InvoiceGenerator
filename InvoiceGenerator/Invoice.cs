@@ -8,6 +8,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
+using Azure;
 
 namespace Invoice
 {
@@ -53,24 +54,24 @@ namespace Invoice
             FullName = null;
         }
 
-        public string AddInvoice(DBStorage databaseAndStorage)
-        {
-            // Generate a unique invoice number
-            this.InvoiceNumber = databaseAndStorage.IncrementalInvoiceNumber + 1;
-            
-            // Update the IncrementalInvoiceNumber in databaseAndStorage
-            databaseAndStorage.IncrementalInvoiceNumber = this.InvoiceNumber;
+public string AddInvoice(DBStorage databaseAndStorage)
+{
+    // Fetch the latest incremental invoice number from the database
+int currentIncrementalNumber = databaseAndStorage.GetHighestInvoiceNumber();
 
-            // Save the invoice to the MongoDB collection
-            var collection = databaseAndStorage.GetDatabaseCollection();
-            collection.InsertOne(this);
-            Console.WriteLine("Invoice saved to the MongoDB database.");
-            
-            // Generate and store the PDF invoice
-            var pdfUrl = this.GeneratePdfInvoice(databaseAndStorage);
+    // Generate a unique invoice number
+this.InvoiceNumber = currentIncrementalNumber + 1;
+    
+    // Save the invoice to the MongoDB collection
+    var collection = databaseAndStorage.GetDatabaseCollection();
+    collection.InsertOne(this);
+    Console.WriteLine("Invoice saved to the MongoDB database.");
+    
+    // Generate and store the PDF invoice
+    var pdfUrl = this.GeneratePdfInvoice(databaseAndStorage);
 
-            return pdfUrl;
-        }
+    return pdfUrl;
+}
 
         public string GeneratePdfInvoice(DBStorage databaseAndStorage)
         {
@@ -91,23 +92,34 @@ namespace Invoice
             return pdfUrl;
         }
 
-        public bool DeleteInvoice(DBStorage databaseAndStorage)
-        {
-            try
-            {
-                databaseAndStorage.DeletePdfFromBlobStorage(this.PdfUrl.Split('/').Last());
-                var filter = Builders<Invoice>.Filter.Eq("_id", this.Id);
-                var update = Builders<Invoice>.Update.Set("IsDeleted", true);
-                var collection = databaseAndStorage.GetDatabaseCollection();
-                collection.UpdateOne(filter, update);
-                return true;
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Error: {0}", e.Message);
-                return false;
-            }
-        }
+public bool DeleteInvoice(DBStorage databaseAndStorage)
+{
+    try
+    {
+        // Delete the PDF from Blob Storage
+        string pdfFileName = this.PdfUrl.Split('/').Last();
+        databaseAndStorage.DeletePdfFromBlobStorage(pdfFileName);
+
+        // Mark the invoice as deleted in the database
+        var filter = Builders<Invoice>.Filter.Eq("_id", this.Id);
+        var update = Builders<Invoice>.Update.Set("IsDeleted", true);
+        var collection = databaseAndStorage.GetDatabaseCollection();
+        collection.UpdateOne(filter, update);
+
+        Console.WriteLine($"Invoice {this.InvoiceNumber:00000} and PDF deleted successfully.");
+        return true;
+    }
+    catch (Azure.RequestFailedException ex)
+    {
+        Console.WriteLine($"Error deleting PDF from Blob Storage: {ex.Message}");
+        return false;
+    }
+    catch (Exception e)
+    {
+        Console.WriteLine($"Error: {e.Message}");
+        return false;
+    }
+}
 
         public string UndeleteInvoice(DBStorage databaseAndStorage)
         {
@@ -120,7 +132,7 @@ namespace Invoice
             return pdfUrl;
         }
 
-        private byte[] GeneratePdf()
+        public byte[] GeneratePdf()
         {
             using (MemoryStream memoryStream = new())
             {

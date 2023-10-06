@@ -19,7 +19,7 @@ class InvoiceGenerator
             .AddJsonFile("appsettings.json")
             .Build();
 
-string? connectionString = configuration?.GetConnectionString("MongoDB") ?? throw new ArgumentNullException(nameof(connectionString));
+        string connectionString = configuration.GetConnectionString("MongoDB") ?? throw new ArgumentNullException(nameof(connectionString));
         string databaseName = "invoices";
         string collectionName = "invoices";
         string blobStorageConnectionString = configuration.GetConnectionString("BlobStorage") ?? throw new ArgumentNullException(nameof(blobStorageConnectionString));
@@ -114,7 +114,7 @@ string? connectionString = configuration?.GetConnectionString("MongoDB") ?? thro
             if (stateCode.Equals("LIST", StringComparison.OrdinalIgnoreCase))
             {
                 ListAllStatesTaxRates();
-                continue; // Restart the loop to ask for state code again
+                continue; // Restart the loop to ask for the state code again
             }
 
             salesTaxRate = GetSalesTaxRate(stateCode);
@@ -144,7 +144,7 @@ string? connectionString = configuration?.GetConnectionString("MongoDB") ?? thro
 
         if (databaseAndStorage.IsDatabaseAvailable())
         {
-            var pdfUrl = invoice.AddInvoice(databaseAndStorage);
+            string? pdfUrl = invoice.AddInvoice(databaseAndStorage);
 
             // Print invoice details to the console
             Console.WriteLine("\n__INVOICE DETAILS__");
@@ -157,7 +157,16 @@ string? connectionString = configuration?.GetConnectionString("MongoDB") ?? thro
             }
             Console.WriteLine($"Sales Tax: {invoice.Tax:C}");
             Console.WriteLine($"Total Cost: {invoice.TotalCost:C}");
-            Console.WriteLine($"PDF Invoice URL: {pdfUrl}");
+
+            // Check if pdfUrl is not null before displaying it
+            if (pdfUrl != null)
+            {
+                Console.WriteLine($"PDF Invoice URL: {pdfUrl}");
+            }
+            else
+            {
+                Console.WriteLine("PDF Invoice URL is not available.");
+            }
         }
         else
         {
@@ -186,10 +195,19 @@ string? connectionString = configuration?.GetConnectionString("MongoDB") ?? thro
                 Console.WriteLine($"Sales Tax: {invoice.Tax:C}");
 
                 // Declare and define pdfUrl here with the correct URL
-                string pdfUrl = invoice.PdfUrl;
+                string? pdfUrl = invoice.PdfUrl;
 
                 Console.WriteLine($"Total Cost: {invoice.TotalCost:C}");
-                Console.WriteLine($"PDF Invoice URL: {pdfUrl}");
+
+                // Check if pdfUrl is not null before displaying it
+                if (pdfUrl != null)
+                {
+                    Console.WriteLine($"PDF Invoice URL: {pdfUrl}");
+                }
+                else
+                {
+                    Console.WriteLine("PDF Invoice URL is not available.");
+                }
             }
         }
     }
@@ -232,18 +250,25 @@ string? connectionString = configuration?.GetConnectionString("MongoDB") ?? thro
         if (invoices.Count > 0)
         {
             Console.WriteLine("Deleted Invoices:");
-            for (int i = 0; i < invoices.Count; i++)
+            if (invoices != null)
             {
-                var invoice = invoices[i];
-                Console.WriteLine($"{i + 1}. {invoice.InvoiceNumber:00000} - {invoice.FullName} - {invoice.Date:yyyy-MM-dd} - Total: {invoice.TotalCost:C}");
-            }
+                for (int i = 0; i < invoices.Count; i++)
+                {
+                    var invoice = invoices[i];
+                    Console.WriteLine($"{i + 1}. {invoice.InvoiceNumber:00000} - {invoice.FullName} - {invoice.Date:yyyy-MM-dd} - Total: {invoice.TotalCost:C}");
+                }
 
-            var selectedIndex = Prompt.Input<int>($"Select an invoice by number (1-{invoices.Count}) to undelete or enter 0 to cancel", validators: new[] { new Func<object, ValidationResult>(value => ((int)value) >= 0 && ((int)value) <= invoices.Count ? ValidationResult.Success : new ValidationResult($"Value should be between 0 and {invoices.Count}")) });
-            if (selectedIndex > 0)
+                var selectedIndex = Prompt.Input<int>($"Select an invoice by number (1-{invoices.Count}) to undelete or enter 0 to cancel", validators: new[] { new Func<object, ValidationResult>(value => ((int)value) >= 0 && ((int)value) <= invoices.Count ? ValidationResult.Success : new ValidationResult($"Value should be between 0 and {invoices.Count}")) });
+                if (selectedIndex > 0)
+                {
+                    var invoice = invoices[selectedIndex - 1];
+                    databaseAndStorage.UnDelete(invoice);
+                    Console.WriteLine($"\nInvoice {invoice.InvoiceNumber:00000} has been undeleted.");
+                }
+            }
+            else
             {
-                var invoice = invoices[selectedIndex - 1];
-                databaseAndStorage.UnDelete(invoice);
-                Console.WriteLine($"\nInvoice {invoice.InvoiceNumber:00000} has been undeleted.");
+                Console.WriteLine("No deleted invoices found.");
             }
         }
         else
