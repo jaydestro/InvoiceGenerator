@@ -61,48 +61,63 @@ class InvoiceGenerator
 
     private static void AddNewInvoice(DBStorage databaseAndStorage)
     {
-        var firstName = Prompt.Input<string>("What is your first name?");
-        var lastName = Prompt.Input<string>("What is your last name?");
+        string firstName;
+        do
+        {
+            firstName = Prompt.Input<string>("What is your first name?");
+        } while (string.IsNullOrWhiteSpace(firstName));
+
+        string lastName;
+        do
+        {
+            lastName = Prompt.Input<string>("What is your last name?");
+        } while (string.IsNullOrWhiteSpace(lastName));
+
+
         var itemList = new List<Item>();
 
         while (true)
         {
-            var itemName = Prompt.Input<string>($"Enter the name of the next item (or leave it empty to finish)");
-            if (string.IsNullOrWhiteSpace(itemName))
+            var itemName = Prompt.Input<string>($"Enter the name of the item (or leave it empty to finish)");
+
+            // Check if the entered item name is empty and the list is empty
+            if (string.IsNullOrWhiteSpace(itemName) && itemList.Count == 0)
             {
-                break;
+                Console.WriteLine("You must enter at least one item.");
+                continue; // Continue the loop to prompt for the first item
             }
-            else
+            else if (string.IsNullOrWhiteSpace(itemName))
             {
-                var item = new Item(itemName);
-                item.Quantity = Prompt.Input<int>($"Enter the quantity of {itemName}", validators: new[] { new Func<object, ValidationResult>(value => ((int)value) > 0 ? ValidationResult.Success : new ValidationResult("Quantity should be greater than 0")) });
+                break; // Exit the loop when an empty item name is entered after the first item
+            }
 
-                item.Price = Prompt.Input<decimal>($"Enter the price of {itemName}", validators: new[] { new Func<object, ValidationResult>(value => ((decimal)value) > 0 ? ValidationResult.Success : new ValidationResult("Price should be greater than 0")) });
+            var item = new Item(itemName);
+            item.Quantity = Prompt.Input<int>($"Enter the quantity of {itemName}", validators: new[] { QuantityValidator() });
+            item.Price = Prompt.Input<decimal>($"Enter the price of {itemName}", validators: new[] { PriceValidator() });
 
-                // Prompt for shipping cost without making it optional
-                decimal? shippingCost = null;
-                while (true)
+            // Prompt for shipping cost without making it optional
+            decimal? shippingCost = null;
+            while (true)
+            {
+                var shippingCostInput = Prompt.Input<string>($"Enter the shipping cost for the entire quantity of {itemName} (or leave it empty to skip)");
+                if (string.IsNullOrWhiteSpace(shippingCostInput))
                 {
-                    var shippingCostInput = Prompt.Input<string>($"Enter the shipping cost for the entire quantity of {itemName} (or leave it empty to skip)");
-                    if (string.IsNullOrWhiteSpace(shippingCostInput))
-                    {
-                        break; // Skip shipping cost input
-                    }
-
-                    if (decimal.TryParse(shippingCostInput, out var parsedShippingCost))
-                    {
-                        shippingCost = parsedShippingCost;
-                        break;
-                    }
-                    else
-                    {
-                        Console.WriteLine("Invalid input. Please enter a valid shipping cost.");
-                    }
+                    break; // Skip shipping cost input
                 }
 
-                item.ShippingCost = shippingCost ?? 0;
-                itemList.Add(item);
+                if (decimal.TryParse(shippingCostInput, out var parsedShippingCost))
+                {
+                    shippingCost = parsedShippingCost;
+                    break;
+                }
+                else
+                {
+                    Console.WriteLine("Invalid input. Please enter a valid shipping cost.");
+                }
             }
+
+            item.ShippingCost = shippingCost ?? 0;
+            itemList.Add(item);
         }
 
         decimal subTotal = itemList.Sum(item => item.Price * item.Quantity);
@@ -174,13 +189,52 @@ class InvoiceGenerator
         }
     }
 
+    private static Func<object?, ValidationResult?> QuantityValidator()
+    {
+        return (input) =>
+        {
+            bool success = false;
+            if (input != null)
+            {
+                if (int.TryParse((string)input, out var quantity))
+                {
+                    success = true;
+                }
+            }
+
+            if (success)
+            {
+                return ValidationResult.Success;
+            }
+            else
+            {
+                return new ValidationResult("Quantity should be greater than 0");
+            }
+        };
+    }
+
+    private static Func<object?, ValidationResult?> PriceValidator()
+    {
+        return (input) =>
+        {
+            if (input != null && (decimal)input > 0M)
+            {
+                return ValidationResult.Success;
+            }
+            else
+            {
+                return new ValidationResult("Prices should be greater than 0");
+            }
+        };
+    }
+
     private static void ListAndShowExistingInvoices(DBStorage databaseAndStorage)
     {
         var invoices = ListExistingInvoices(databaseAndStorage);
 
         if (invoices.Count > 0)
         {
-            var selectedIndex = Prompt.Input<int>($"Select an invoice by number (1-{invoices.Count}) or enter 0 to cancel", validators: new[] { new Func<object, ValidationResult>(value => ((int)value) >= 0 && ((int)value) <= invoices.Count ? ValidationResult.Success : new ValidationResult($"Value should be between 0 and {invoices.Count}")) });
+            var selectedIndex = Prompt.Input<int>($"Select an invoice by number (1-{invoices.Count}) or enter 0 to cancel", validators: new[] { new Func<object, ValidationResult?>(value => ((int)value) >= 0 && ((int)value) <= invoices.Count ? ValidationResult.Success : new ValidationResult($"Value should be between 0 and {invoices.Count}")) });
             if (selectedIndex > 0)
             {
                 var invoice = invoices[selectedIndex - 1];
@@ -194,15 +248,12 @@ class InvoiceGenerator
                 }
                 Console.WriteLine($"Sales Tax: {invoice.Tax:C}");
 
-                // Declare and define pdfUrl here with the correct URL
-                string? pdfUrl = invoice.PdfUrl;
-
                 Console.WriteLine($"Total Cost: {invoice.TotalCost:C}");
 
                 // Check if pdfUrl is not null before displaying it
-                if (pdfUrl != null)
+                if (!string.IsNullOrEmpty(invoice.PdfUrl))
                 {
-                    Console.WriteLine($"PDF Invoice URL: {pdfUrl}");
+                    Console.WriteLine($"PDF Invoice URL: {invoice.PdfUrl}");
                 }
                 else
                 {
@@ -233,7 +284,7 @@ class InvoiceGenerator
 
         if (invoices.Count > 0)
         {
-            var selectedIndex = Prompt.Input<int>($"Select an invoice by number (1-{invoices.Count}) to delete or enter 0 to cancel", validators: new[] { new Func<object, ValidationResult>(value => ((int)value) >= 0 && ((int)value) <= invoices.Count ? ValidationResult.Success : new ValidationResult($"Value should be between 0 and {invoices.Count}")) });
+            var selectedIndex = Prompt.Input<int>($"Select an invoice by number (1-{invoices.Count}) to delete or enter 0 to cancel", validators: new[] { new Func<object, ValidationResult?>(value => ((int)value) >= 0 && ((int)value) <= invoices.Count ? ValidationResult.Success : new ValidationResult($"Value should be between 0 and {invoices.Count}")) });
             if (selectedIndex > 0)
             {
                 var invoice = invoices[selectedIndex - 1];
@@ -258,7 +309,7 @@ class InvoiceGenerator
                     Console.WriteLine($"{i + 1}. {invoice.InvoiceNumber:00000} - {invoice.FullName} - {invoice.Date:yyyy-MM-dd} - Total: {invoice.TotalCost:C}");
                 }
 
-                var selectedIndex = Prompt.Input<int>($"Select an invoice by number (1-{invoices.Count}) to undelete or enter 0 to cancel", validators: new[] { new Func<object, ValidationResult>(value => ((int)value) >= 0 && ((int)value) <= invoices.Count ? ValidationResult.Success : new ValidationResult($"Value should be between 0 and {invoices.Count}")) });
+                var selectedIndex = Prompt.Input<int>($"Select an invoice by number (1-{invoices.Count}) to undelete or enter 0 to cancel", validators: new[] { new Func<object, ValidationResult?>(value => ((int)value) >= 0 && ((int)value) <= invoices.Count ? ValidationResult.Success : new ValidationResult($"Value should be between 0 and {invoices.Count}")) });
                 if (selectedIndex > 0)
                 {
                     var invoice = invoices[selectedIndex - 1];

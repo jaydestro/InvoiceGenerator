@@ -25,101 +25,76 @@ Example `appsettings.json` file:
     "ContainerName": "your-container-name"
   }
 }
+
 ```
 
 > **Note:** If you have a remote MongoDB server, replace the connection string in the code with the appropriate connection string for your server.
-> 
+>
 ### Get Started with Azure Cosmos DB for MongoDB
 
 You can sign up for Azure Cosmos DB for MongoDB for free and start building scalable applications. To get started, visit [https://aka.ms/trycosmosdb](https://aka.ms/trycosmosdb) to create a free account and explore the powerful features of Azure Cosmos DB.
-
-
-## Features
-
-- Add a new invoice with customer details, items, and shipping costs.
-- Calculate sales tax based on the state code and sales tax rates.
-- Store invoices in a MongoDB database.
-- Generate PDF invoices and store them in Azure Blob Storage.
-- Retrieve the public URL of each PDF invoice and store it in the MongoDB database.
-- List existing invoices with basic details.
-- View detailed information for a selected invoice, including the PDF invoice URL.
-
-## Code Breakdown
-
-The code is structured into several files and classes:
-
-## Program.cs
-
-### Main Method
-- Reads configuration settings from `appsettings.json`.
-- Creates an instance of `DBStorage` to manage MongoDB and Blob Storage.
-- Displays a menu to interact with the application.
-- Executes corresponding actions based on user's choices.
-
-### AddNewInvoice Method
-- Collects customer information and item details.
-- Calculates invoice totals and retrieves sales tax rates.
-- Generates an invoice number and creates an `Invoice` instance.
-- Stores invoice in MongoDB and generates a PDF version.
-- Uploads PDF to Azure Blob Storage and updates PDF URL.
-- Displays generated invoice details.
-
-### GeneratePdfInvoice Method
-- Uses `iTextSharp` to create a PDF document.
-- Adds invoice details to the PDF.
-- Returns PDF content as a byte array.
-
-### ListExistingInvoices Method
-- Retrieves and lists existing invoices from MongoDB.
-- Allows user to select an invoice to display details.
-
-### ListAllStatesTaxRates and GetSalesTaxRate Methods
-- Display sales tax rates by state from `stateSalesTaxRates.json`.
-- Retrieve sales tax rate for a specific state.
-
-### LoadStateSalesTaxRates Method
-- Loads state sales tax rates from `stateSalesTaxRates.json`.
-
-### GenerateRandomInvoiceNumber Method
-- Generates a random invoice number.
-
-## Invoice.cs
-- Defines the `Invoice` class representing an invoice entity.
-- Contains properties for various invoice details.
-
-## Item.cs
-- Defines the `Item` class representing an individual item in an invoice.
-- Contains properties for item details.
-
-## DBStorage.cs
-- Defines the `DBStorage` class for MongoDB and Blob Storage interactions.
-- Manages database connections, collections, and blob containers.
-
-## appsettings.json
-- Configuration file for application settings, including connection strings.
-
-## stateSalesTaxRates.json
-- JSON file containing sales tax rates for different states and territories.
 
 ## How to Use
 
 1. Clone the repository to your local machine.
 2. Open a command prompt or terminal and navigate to the project directory.
 3. Run the following command to start the application:
+
    ```shell
     dotnet run
    ```
+
 4. Follow the prompts to interact with the Invoice Generator.
-5. Choose option 1 to add a new invoice or option 2 to list existing invoices.
+5. Use the menu to create, delete, undelete and show the invoices.
 
-## Technologies Used
+## Invoice Application Code Breakdown
 
-- C#
-- .NET Core
-- MongoDB
-- MongoDB .NET Driver
-- Azure Blob Storage
-- iTextSharp (PDF generation library)
+### Overview
+
+This application is a simple invoice generator using MongoDB for storing invoice data and Azure Blob Storage for storing invoice PDFs.
+
+### Structure
+
+The application's structure can be broken down into the following main components:
+
+### Configuration
+
+- `appsettings.json`: Contains connection strings for MongoDB and Azure Blob Storage, and other configuration settings.
+
+### Core Components
+
+1. **DBStorage.cs**: Responsible for database and storage related operations, including:
+    - Interactions with MongoDB for CRUD operations.
+    - Interactions with Azure Blob Storage for storing invoice PDFs.
+    - Initialization of the database and blob storage.
+
+2. **Invoice.cs**: Represents the `Invoice` model and provides functionalities such as:
+    - Generating a new invoice PDF.
+    - Adding, deleting, and undeleting invoices.
+
+3. **Item.cs**: Represents an item that can be added to an invoice.
+
+4. **Program.cs (InvoiceGenerator)**: This is the main class where the user interacts with the system. It uses the `Sharprompt` library to capture user inputs and present various options.
+
+### Additional Data
+
+- `stateSalesTaxRates.json`: Contains sales tax rates for U.S. states and territories.
+
+## Features
+
+1. **Adding a New Invoice**: Users can input the necessary details to create an invoice, which gets saved to MongoDB and its corresponding PDF stored in Azure Blob Storage.
+
+2. **Listing Invoices**: Users can view a list of existing invoices.
+
+3. **Deleting and Undeleting Invoices**: Users have the option to mark an invoice as deleted or undelete a previously deleted invoice.
+
+4. **Fetching Sales Tax Rates**: Depending on the U.S. state, appropriate sales tax rates are applied to the invoice.
+
+## Enhancements and Notes
+
+- The application currently provides a command-line interface for operations. Consider introducing a graphical interface or a web interface in the future.
+- Regularly update `stateSalesTaxRates.json` to keep the sales tax rates current.
+- Implement additional error handling and logging for improved robustness.
 
 ## Contributing
 
