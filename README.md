@@ -17,9 +17,6 @@
 6. [Features](#features)
 7. [Contributing](#contributing)
 8. [License](#license)
-9. [Appendix](#appendix)
-   - [Example `appsettings.json` File](#example-appsettingsjson-file)
-   - [State Sales Tax Rates](#state-sales-tax-rates)
 
 The Invoice Generator is a user-friendly console application that allows you to generate, store, and manage invoices. With its seamless integration with MongoDB hosted on Azure Cosmos DB and Azure Blob Storage, users can not only create invoices but also save them as PDFs and fetch them as needed. It calculates the sales tax based on the state code provided, and the PDF invoices are stored in Azure Blob Storage with anonymous access. The public URL of each invoice is also stored in the MongoDB database.
 
