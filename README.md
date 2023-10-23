@@ -22,6 +22,7 @@ The Invoice Generator is a user-friendly console application that allows you to 
 
 Example `appsettings.json` file:
 
+```json
 {
   "ConnectionStrings": {
     "MongoDB": "mongodb://localhost:27017",
@@ -31,6 +32,7 @@ Example `appsettings.json` file:
     "ContainerName": "your-container-name"
   }
 }
+```
 
 > **Note:** For users with a remote MongoDB server, update the connection string in `appsettings.json` with the appropriate connection string for your server.
 
@@ -42,23 +44,21 @@ You can sign up for Azure Cosmos DB for MongoDB for free and start building scal
 
 1. Clone the repository to your local machine.
 
-1. Switch to the console application directory
+2. Switch to the console application directory
 
-```shell
+```bash
 cd InvoiceGenerator
 ```
 
-1. Open a command prompt or terminal and navigate to the project directory.
+3. Open a command prompt or terminal and navigate to the project directory.
 
-1. Run the following command to start the application:
+4. Run the following command to start the application:
 
 ```shell
     dotnet run
 ```
 
-1. Follow the prompts to interact with the Invoice Generator.
-
-1. Use the interactive menu to create, delete, undelete, and view the invoices.
+5. Use the interactive menu to create, delete, undelete, and view the invoices.
 
 ## Application Components
 
@@ -72,15 +72,15 @@ A simple yet robust invoice generator that leverages MongoDB for storing invoice
 
 ### Core Components
 
-1\. **DBStorage.cs**: Handles all database and storage related operations. It interacts with MongoDB for CRUD operations, Azure Blob Storage for PDF storage, and initializes the database and blob storage.
+1. **DBStorage.cs**: Handles all database and storage related operations. It interacts with MongoDB for CRUD operations, Azure Blob Storage for PDF storage, and initializes the database and blob storage.
 
-2\. **Invoice.cs**: Contains the `Invoice` model and its associated functionalities such as generating a PDF, adding, deleting, and undeleting invoices.
+1. **Invoice.cs**: Contains the `Invoice` model and its associated functionalities such as generating a PDF, adding, deleting, and undeleting invoices.
 
-3\. **Item.cs**: Represents individual items within an invoice.
+1. **Item.cs**: Represents individual items within an invoice.
 
-4\. **Program.cs (InvoiceGenerator)**: The primary interaction point for the user. It uses the `Sharprompt` library for an intuitive command-line experience.
+1. **Program.cs (InvoiceGenerator)**: The primary interaction point for the user. It uses the `Sharprompt` library for an intuitive command-line experience.
 
-5.\ `stateSalesTaxRates.json`: A file with sales tax rates specific to U.S. states and territories.
+1. `stateSalesTaxRates.json`: A file with sales tax rates specific to U.S. states and territories.
 
 ## Features
 
