@@ -2,14 +2,10 @@ name: build and test
 
 on:
   push:
-  pull_request:
-    branches: [ '*' ]
-    paths:
-    - '**.cs'
-    - '**.csproj'
+    branches: [ 'dev' ]
 
 env:
-  DOTNET_VERSION: '7.0.402' # The .NET SDK version to use
+  DOTNET_VERSION: '7.x' # The .NET SDK version to use
 
 jobs:
   build-and-test:
