@@ -193,25 +193,17 @@ class InvoiceGenerator
     {
         return (input) =>
         {
-            bool success = false;
-            if (input != null)
-            {
-                if (int.TryParse((string)input, out var quantity))
-                {
-                    success = true;
-                }
-            }
-
-            if (success)
+            if (input != null && int.TryParse(input.ToString(), out var quantity) && quantity > 0)
             {
                 return ValidationResult.Success;
             }
             else
             {
-                return new ValidationResult("Quantity should be greater than 0");
+                return new ValidationResult("Quantity should be a positive integer.");
             }
         };
     }
+
 
     private static Func<object?, ValidationResult?> PriceValidator()
     {

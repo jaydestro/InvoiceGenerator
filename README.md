@@ -2,13 +2,19 @@
 
 The Invoice Generator is a user-friendly console application that allows you to generate, store, and manage invoices. With its seamless integration with MongoDB hosted on Azure Cosmos DB and Azure Blob Storage, users can not only create invoices but also save them as PDFs and fetch them as needed. It calculates the sales tax based on the state code provided, and the PDF invoices are stored in Azure Blob Storage with anonymous access. The public URL of each invoice is also stored in the MongoDB database.
 
+## Usage
+
+- Choose options from the command-line menu to add, list, delete, or undelete invoices.
+- Enter customer details, item information, and tax-related details as prompted.
+- View PDF invoice URLs when available.
+
 ## Getting Started
 
 ### Prerequisites
 
 - .NET Core SDK installed.
 
-- MongoDB server.
+- MongoDB server running on `localhost:27017` or use a remotely hosted service such as [https://learn.microsoft.com/azure/cosmos-db/mongodb/](Azure Cosmos DB for MongoDB.)
 
 - Azure Blob Storage account with a container for storing the PDF invoices.
 
@@ -16,7 +22,6 @@ The Invoice Generator is a user-friendly console application that allows you to 
 
 Example `appsettings.json` file:
 
-```json
 {
   "ConnectionStrings": {
     "MongoDB": "mongodb://localhost:27017",
@@ -27,7 +32,6 @@ Example `appsettings.json` file:
   }
 }
 
-
 > **Note:** For users with a remote MongoDB server, update the connection string in `appsettings.json` with the appropriate connection string for your server.
 
 ### Get Started with Azure Cosmos DB for MongoDB
@@ -36,17 +40,25 @@ You can sign up for Azure Cosmos DB for MongoDB for free and start building scal
 
 ## How to Use
 
-1. Clone the repository.
-2. Navigate to the project directory in your terminal.
-3. Start the application with:
+1. Clone the repository to your local machine.
 
-   ```shell
-    dotnet run
-    ```
+1. Switch to the console application directory
 
-4. Follow the prompts to interact with the Invoice Generator.
+```shell
+cd InvoiceGenerator
+```
 
-5. Use the interactive menu to create, delete, undelete, and view the invoices.
+1. Open a command prompt or terminal and navigate to the project directory.
+
+1. Run the following command to start the application:
+
+```shell
+    dotnet run
+```
+
+1. Follow the prompts to interact with the Invoice Generator.
+
+1. Use the interactive menu to create, delete, undelete, and view the invoices.
 
 ## Application Components
 
@@ -60,17 +72,15 @@ A simple yet robust invoice generator that leverages MongoDB for storing invoice
 
 ### Core Components
 
-1. **DBStorage.cs**: Handles all database and storage related operations. It interacts with MongoDB for CRUD operations, Azure Blob Storage for PDF storage, and initializes the database and blob storage.
+1\. **DBStorage.cs**: Handles all database and storage related operations. It interacts with MongoDB for CRUD operations, Azure Blob Storage for PDF storage, and initializes the database and blob storage.
 
-2. **Invoice.cs**: Contains the `Invoice` model and its associated functionalities such as generating a PDF, adding, deleting, and undeleting invoices.
+2\. **Invoice.cs**: Contains the `Invoice` model and its associated functionalities such as generating a PDF, adding, deleting, and undeleting invoices.
 
-3. **Item.cs**: Represents individual items within an invoice.
+3\. **Item.cs**: Represents individual items within an invoice.
 
-4. **Program.cs (InvoiceGenerator)**: The primary interaction point for the user. It uses the `Sharprompt` library for an intuitive command-line experience.
+4\. **Program.cs (InvoiceGenerator)**: The primary interaction point for the user. It uses the `Sharprompt` library for an intuitive command-line experience.
 
-### Additional Data
-
-- `stateSalesTaxRates.json`: A file with sales tax rates specific to U.S. states and territories.
+5.\ `stateSalesTaxRates.json`: A file with sales tax rates specific to U.S. states and territories.
 
 ## Features
 
@@ -79,14 +89,6 @@ A simple yet robust invoice generator that leverages MongoDB for storing invoice
 - **Listing and Managing Invoices**: View a list of existing invoices and manage them with options to delete or undelete.
 
 - **Dynamic Sales Tax Rates**: Depending on the given U.S. state, the application applies the correct sales tax rate from `stateSalesTaxRates.json`.
-
-## Enhancements and Suggestions
-
-- While the application offers a command-line interface, future iterations could introduce a graphical or web interface.
-
-- Ensure `stateSalesTaxRates.json` is updated regularly to maintain current tax rates.
-
-- Further error handling and logging mechanisms can be integrated for increased reliability.
 
 ## Contributing
 
