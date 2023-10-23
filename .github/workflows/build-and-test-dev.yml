@@ -3,9 +3,6 @@ name: build and test
 on:
   push:
     branches: [ 'dev' ]
-    paths:
-    - '**.cs'
-    - '**.csproj'
 
 env:
   DOTNET_VERSION: '7.x' # The .NET SDK version to use
