@@ -54,7 +54,7 @@ namespace Invoice
             FullName = null;
         }
 
-        public string AddInvoice(DBStorage databaseAndStorage)
+        public string AddInvoice(IDBStorage databaseAndStorage)
         {
             // Fetch the latest incremental invoice number from the database
             int currentIncrementalNumber = databaseAndStorage.GetHighestInvoiceNumber();
@@ -73,7 +73,7 @@ namespace Invoice
             return pdfUrl;
         }
 
-        public string GeneratePdfInvoice(DBStorage databaseAndStorage)
+        public string GeneratePdfInvoice(IDBStorage databaseAndStorage)
         {
             string pdfFileName = String.Format("{0:00000}_invoice.pdf", this.InvoiceNumber);
             byte[] pdfBytes = GeneratePdf();
@@ -92,7 +92,7 @@ namespace Invoice
             return pdfUrl;
         }
 
-        public bool DeleteInvoice(DBStorage databaseAndStorage)
+        public bool DeleteInvoice(IDBStorage databaseAndStorage)
         {
             try
             {
@@ -121,7 +121,7 @@ namespace Invoice
             }
         }
 
-        public string UndeleteInvoice(DBStorage databaseAndStorage)
+        public string UndeleteInvoice(IDBStorage databaseAndStorage)
         {
             var filter = Builders<Invoice>.Filter.Eq("_id", this.Id);
             var update = Builders<Invoice>.Update.Set("IsDeleted", false);

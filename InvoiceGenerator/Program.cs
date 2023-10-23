@@ -59,7 +59,7 @@ class InvoiceGenerator
         }
     }
 
-    private static void AddNewInvoice(DBStorage databaseAndStorage)
+    private static void AddNewInvoice(IDBStorage databaseAndStorage)
     {
         string firstName;
         do
@@ -220,7 +220,7 @@ class InvoiceGenerator
         };
     }
 
-    private static void ListAndShowExistingInvoices(DBStorage databaseAndStorage)
+    private static void ListAndShowExistingInvoices(IDBStorage databaseAndStorage)
     {
         var invoices = ListExistingInvoices(databaseAndStorage);
 
@@ -255,7 +255,7 @@ class InvoiceGenerator
         }
     }
 
-    private static List<Invoice.Invoice> ListExistingInvoices(DBStorage databaseAndStorage)
+    private static List<Invoice.Invoice> ListExistingInvoices(IDBStorage databaseAndStorage)
     {
         var invoices = databaseAndStorage.ListActive();
         if (invoices.Count > 0)
@@ -270,7 +270,7 @@ class InvoiceGenerator
         return invoices;
     }
 
-    private static void DeleteInvoice(DBStorage databaseAndStorage)
+    private static void DeleteInvoice(IDBStorage databaseAndStorage)
     {
         var invoices = ListExistingInvoices(databaseAndStorage);
 
@@ -286,7 +286,7 @@ class InvoiceGenerator
         }
     }
 
-    private static void UnDeleteInvoice(DBStorage databaseAndStorage)
+    private static void UnDeleteInvoice(IDBStorage databaseAndStorage)
     {
         var invoices = databaseAndStorage.ListDeleted();
 

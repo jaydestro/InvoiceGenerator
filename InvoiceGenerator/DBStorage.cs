@@ -8,7 +8,43 @@ using System.IO;
 
 namespace Invoice
 {
-    public class DBStorage
+    public interface IDBStorage {
+
+        public string ConnectionString {get; set;}
+        public string DatabaseName {get; set;}
+        public string CollectionName { get; set; }
+        public string BlobConnectionString { get; set; }
+        public string BlobContainerName { get; set; }
+
+        public IMongoCollection<Invoice>? Collection {get; set;}
+
+        public int IncrementalInvoiceNumber { get; }
+        public int InvoiceNumber { get; }
+
+        public IMongoCollection<Invoice> GetDatabaseCollection();
+        public void CreateDatabaseAndStorage();
+        public bool IsDatabaseAvailable();
+        public void UploadPdfToBlobStorage(string fileName, byte[] fileBytes);
+        public void DeletePdfFromBlobStorage(string fileName);
+        public string GetBlobStorageUrl(string fileName);
+
+        public List<Invoice> ListAll();
+
+        public int GetInvoiceCount();
+
+        public List<Invoice> ListActive();
+
+        public List<Invoice> ListDeleted();
+
+        public void Delete(Invoice invoice);
+
+        public void UnDelete(Invoice invoice);
+        
+
+        public int GetHighestInvoiceNumber();
+
+    }
+    public class DBStorage : IDBStorage
     {
         public string ConnectionString { get; set; }
         public string DatabaseName { get; set; }
@@ -283,5 +319,6 @@ namespace Invoice
                 return 0; // Return 0 if no invoices exist in the database.
             }
         }
+
     }
 }
