@@ -1,7 +1,5 @@
 # Invoice Generator
 
-[![build and test](https://github.com/jaydestro/InvoiceGenerator/actions/workflows/build.and-test.yml/badge.svg?branch=main)](https://github.com/jaydestro/InvoiceGenerator/actions/workflows/build.and-test.yml)
-
 ## Table of Contents
 
 1. [Invoice Generator](#invoice-generator)
