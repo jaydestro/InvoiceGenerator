@@ -10,13 +10,13 @@ obj/*
 *.dll
 *.pdb
 *.exe 
-appsettings.json
-./appsettings.json
-InvoiceGenerator.sln
-
+*/bin
+*/obj
 /bin
 /obj
 
+# Package files
+out/
 
 # User-specific files
 *.rsuser
@@ -408,4 +408,3 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
-appsettings.json
