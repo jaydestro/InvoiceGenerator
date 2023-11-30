@@ -30,7 +30,7 @@ The Invoice Generator is a user-friendly console application that allows you to 
 
 - .NET Core SDK installed.
 
-- MongoDB server running on `localhost:27017` or use a remotely hosted service such as [https://learn.microsoft.com/azure/cosmos-db/mongodb/](Azure Cosmos DB for MongoDB.)
+- MongoDB server running on `localhost:27017` or use a remotely hosted service such as [Azure Cosmos DB for MongoDB](https://learn.microsoft.com/azure/cosmos-db/mongodb).
 
 - Azure Blob Storage account with a container for storing the PDF invoices.
 
