@@ -17,5 +17,9 @@
     <PackageReference Include="MongoDB.Driver" Version="2.20.0" />
     <PackageReference Include="Sharprompt" Version="2.4.5" />
   </ItemGroup>
-
+  <ItemGroup>
+    <Content Include="*.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>  
+  </ItemGroup>
 </Project>
