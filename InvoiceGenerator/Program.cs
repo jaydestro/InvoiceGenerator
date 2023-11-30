@@ -16,7 +16,8 @@ class InvoiceGenerator
     {
         configuration = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json")
+            .AddJsonFile("appsettings.json", optional: true)
+            .AddEnvironmentVariables()
             .Build();
 
         string connectionString = configuration.GetConnectionString("MongoDB") ?? throw new ArgumentNullException(nameof(connectionString));
